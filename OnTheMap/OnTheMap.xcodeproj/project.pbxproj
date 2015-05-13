@@ -18,6 +18,11 @@
 		E2F100F01B003F41007413BB /* Roboto-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E2F100ED1B003F15007413BB /* Roboto-Thin.ttf */; };
 		E2F100F21B004445007413BB /* OTMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F100F11B004445007413BB /* OTMClient.swift */; };
 		E2F100F41B00459B007413BB /* OTMConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F100F31B00459B007413BB /* OTMConstants.swift */; };
+		E2F100F61B015F88007413BB /* OTMConvenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F100F51B015F88007413BB /* OTMConvenience.swift */; };
+		E2F100F81B016412007413BB /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2F100F71B016412007413BB /* MapKit.framework */; };
+		E2F100FC1B02426C007413BB /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F100FB1B02426C007413BB /* MapViewController.swift */; };
+		E2F101321B024C2D007413BB /* OTMStudentLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F101311B024C2D007413BB /* OTMStudentLocation.swift */; };
+		E2F101341B02CAA3007413BB /* OTMAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F101331B02CAA3007413BB /* OTMAnnotation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +51,11 @@
 		E2F100ED1B003F15007413BB /* Roboto-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Thin.ttf"; sourceTree = "<group>"; };
 		E2F100F11B004445007413BB /* OTMClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OTMClient.swift; sourceTree = "<group>"; };
 		E2F100F31B00459B007413BB /* OTMConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OTMConstants.swift; sourceTree = "<group>"; };
+		E2F100F51B015F88007413BB /* OTMConvenience.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OTMConvenience.swift; sourceTree = "<group>"; };
+		E2F100F71B016412007413BB /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
+		E2F100FB1B02426C007413BB /* MapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
+		E2F101311B024C2D007413BB /* OTMStudentLocation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OTMStudentLocation.swift; sourceTree = "<group>"; };
+		E2F101331B02CAA3007413BB /* OTMAnnotation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OTMAnnotation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +63,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E2F100F81B016412007413BB /* MapKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,6 +80,7 @@
 		E2F100B91B003A34007413BB = {
 			isa = PBXGroup;
 			children = (
+				E2F100F71B016412007413BB /* MapKit.framework */,
 				E2F100C41B003A34007413BB /* OnTheMap */,
 				E2F100DA1B003A35007413BB /* OnTheMapTests */,
 				E2F100C31B003A34007413BB /* Products */,
@@ -138,6 +150,7 @@
 			isa = PBXGroup;
 			children = (
 				E2F100E91B003AE1007413BB /* Clients */,
+				E2F101331B02CAA3007413BB /* OTMAnnotation.swift */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -147,6 +160,8 @@
 			children = (
 				E2F100F11B004445007413BB /* OTMClient.swift */,
 				E2F100F31B00459B007413BB /* OTMConstants.swift */,
+				E2F100F51B015F88007413BB /* OTMConvenience.swift */,
+				E2F101311B024C2D007413BB /* OTMStudentLocation.swift */,
 			);
 			name = Clients;
 			sourceTree = "<group>";
@@ -155,6 +170,7 @@
 			isa = PBXGroup;
 			children = (
 				E2F100C91B003A34007413BB /* LoginViewController.swift */,
+				E2F100FB1B02426C007413BB /* MapViewController.swift */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -262,10 +278,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E2F100F61B015F88007413BB /* OTMConvenience.swift in Sources */,
+				E2F101341B02CAA3007413BB /* OTMAnnotation.swift in Sources */,
+				E2F100FC1B02426C007413BB /* MapViewController.swift in Sources */,
 				E2F100CA1B003A34007413BB /* LoginViewController.swift in Sources */,
 				E2F100F21B004445007413BB /* OTMClient.swift in Sources */,
 				E2F100F41B00459B007413BB /* OTMConstants.swift in Sources */,
 				E2F100C81B003A34007413BB /* AppDelegate.swift in Sources */,
+				E2F101321B024C2D007413BB /* OTMStudentLocation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

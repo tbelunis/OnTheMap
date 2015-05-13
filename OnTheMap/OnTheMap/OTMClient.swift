@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 class OTMClient: NSObject {
     /* Shared session */
@@ -22,38 +23,120 @@ class OTMClient: NSObject {
         super.init()
     }
     
-    func loginToUdacity() {
-//        let sessionURL = Constants.BaseUdacityURL + "/" + Methods.AuthenticationSessionNew
-        let request = NSMutableURLRequest(URL: NSURL(string: "https://www.udacity.com/api/session")!)
+    func loginToUdacity(username: String, password: String, completionHandler: (result: Bool, error: NSError?) -> Void) -> NSURLSessionDataTask {
+        let sessionURL = Constants.BaseUdacityURL + Methods.AuthenticationSessionNew
+        let request = NSMutableURLRequest(URL: NSURL(string: sessionURL)!)
+        let jsonBody: [String : [String : AnyObject]] = [
+            JSONBodyKeys.Udacity: [
+                JSONBodyKeys.Username: username,
+                JSONBodyKeys.Password: password
+            ]
+        ]
         request.HTTPMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.HTTPBody = "{\"udacity\": {\"username\": \"tbelunis@yahoo.com\", \"password\": \"Fur5bone!\"}}".dataUsingEncoding(NSUTF8StringEncoding)
+        var jsonifyError: NSError? = nil
+        request.HTTPBody = NSJSONSerialization.dataWithJSONObject(jsonBody, options: nil, error: &jsonifyError)
         
         let task = session.dataTaskWithRequest(request) { data, response, error in
             if let error = error {
-                println(error.description)
+                let newError = OTMClient.errorForData(data, response: response, error: error)
+                completionHandler(result: false, error: newError)
             } else {
+                var parsingError: NSError?
                 let newData = data.subdataWithRange(NSMakeRange(5, data.length - 5))
-                println(NSString(data: newData, encoding: NSUTF8StringEncoding))
+                 if let parsedResult = NSJSONSerialization.JSONObjectWithData(newData, options: NSJSONReadingOptions.allZeros, error: &parsingError) as? [String : AnyObject] {
+                    if let userID = parsedResult[JSONResponseKeys.Key] as? String {
+                        self.userID = userID
+                        println("User ID: \(userID)")
+                    }
+                    if let sessionID = parsedResult[JSONResponseKeys.Session] as? String {
+                        self.sessionID = sessionID
+                    }
+                    completionHandler(result:true, error:nil)
+                } else {
+                    completionHandler(result: false, error: NSError(domain: "loginToUdacity parsing", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse loginToUdacity data"]))
+                }
+                
             }
         }
         task.resume()
+        
+        return task
+    }
+    
+    func taskForParseGETMethod(completionHandler:(result: AnyObject?, error: NSError?) -> Void) -> NSURLSessionDataTask  {
+        let request = NSMutableURLRequest(URL: NSURL(string: "https://api.parse.com/1/classes/StudentLocation")!)
+        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
+        
+        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
+        
+        let session = NSURLSession.sharedSession()
+        
+        let task = session.dataTaskWithRequest(request) { data, response, error in
+            if let error = error {
+                let newError = OTMClient.errorForData(data, response: response, error: error)
+                completionHandler(result: nil, error: newError)
+            } else {
+                OTMClient.parseJSONWithCompletionHandler(data, completionHandler: completionHandler)
+            }
+        }
+        task.resume()
+        
+        return task
+    }
+    
+    func getUdacityUserData(userID: String, completionHandler: (result: OTMStudentLocation?, error: NSError?) -> Void) -> NSURLSessionDataTask {
+        let sessionURL = Constants.BaseUdacityURL + OTMClient.subtituteKeyInMethod(Methods.PublicUserData, key: "id", value: userID)!
+        let request = NSURLRequest(URL: NSURL(string: sessionURL)!)
+        
+        let task = session.dataTaskWithRequest(request) { data, response, error in
+            if let error = error {
+                let newError = OTMClient.errorForData(data, response: response, error: error)
+                completionHandler(result: nil, error: newError)
+            } else {
+                var parsingError: NSError?
+                let newData = data.subdataWithRange(NSMakeRange(5, data.length - 5))
+                if let parsedResult = NSJSONSerialization.JSONObjectWithData(newData, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as? [String : AnyObject] {
+                    
+                    var userData = OTMStudentLocation(dictionary: parsedResult)
+                    
+                    completionHandler(result: userData, error: nil)
+                } else {
+                    completionHandler(result: nil, error: NSError(domain: "getUdacityUserData parsing", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse getUdacityUserData"]))
+                }
+            }
+        }
+        
+        task.resume()
+        
+        return task
+    }
+    
+    // MARK: - Helpers
+    
+    /* Helper: Substitute the key for the value that is contained within the method name */
+    class func subtituteKeyInMethod(method: String, key: String, value: String) -> String? {
+        if method.rangeOfString("{\(key)}") != nil {
+            return method.stringByReplacingOccurrencesOfString("{\(key)}", withString: value)
+        } else {
+            return nil
+        }
     }
     
     /* Helper: Given a response with error, see if a status_message is returned, otherwise return the previous error */
     class func errorForData(data: NSData?, response: NSURLResponse?, error: NSError) -> NSError {
         
-//        if let parsedResult = NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments, error: nil) as? [String : AnyObject] {
-//            
-//            if let errorMessage = parsedResult[TMDBClient.JSONResponseKeys.StatusMessage] as? String {
-//                
-//                let userInfo = [NSLocalizedDescriptionKey : errorMessage]
-//                
-//                return NSError(domain: "TMDB Error", code: 1, userInfo: userInfo)
-//            }
-//        }
-//        
+        if let parsedResult = NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments, error: nil) as? [String : AnyObject] {
+            
+            if let errorMessage = parsedResult[OTMClient.JSONResponseKeys.Error] as? String {
+                
+                let userInfo = [NSLocalizedDescriptionKey : errorMessage]
+                
+                return NSError(domain: "OTM Error", code: 1, userInfo: userInfo)
+            }
+        }
+        
         return error
     }
     
