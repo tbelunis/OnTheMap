@@ -17,6 +17,7 @@ class OTMClient: NSObject {
     /* Authentication state */
     var sessionID: String? = nil
     var userID: String? = nil
+    var udacityUser: OTMUser? = nil
     
     override init() {
         session = NSURLSession.sharedSession()
@@ -48,7 +49,18 @@ class OTMClient: NSObject {
                  if let parsedResult = NSJSONSerialization.JSONObjectWithData(newData, options: NSJSONReadingOptions.allZeros, error: &parsingError) as? [String : AnyObject] {
                     if let userID = parsedResult[JSONResponseKeys.Key] as? String {
                         self.userID = userID
-                        println("User ID: \(userID)")
+                        self.getUdacityUserData(self.userID!) { result, error in
+                            if let error = error {
+                                completionHandler(result: false, error: error)
+                            } else {
+                                if let udacityUser = result {
+                                    self.udacityUser = udacityUser
+                                    completionHandler(result: true, error: nil)
+                                } else {
+                                    completionHandler(result: false, error: NSError(domain: "getUdacityUserData parsing", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse getUdacityUserData"]))
+                                }
+                            }
+                        }
                     }
                     if let sessionID = parsedResult[JSONResponseKeys.Session] as? String {
                         self.sessionID = sessionID
@@ -86,7 +98,7 @@ class OTMClient: NSObject {
         return task
     }
     
-    func getUdacityUserData(userID: String, completionHandler: (result: OTMStudentLocation?, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    func getUdacityUserData(userID: String, completionHandler: (result: OTMUser?, error: NSError?) -> Void) -> NSURLSessionDataTask {
         let sessionURL = Constants.BaseUdacityURL + OTMClient.subtituteKeyInMethod(Methods.PublicUserData, key: "id", value: userID)!
         let request = NSURLRequest(URL: NSURL(string: sessionURL)!)
         
@@ -99,7 +111,7 @@ class OTMClient: NSObject {
                 let newData = data.subdataWithRange(NSMakeRange(5, data.length - 5))
                 if let parsedResult = NSJSONSerialization.JSONObjectWithData(newData, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as? [String : AnyObject] {
                     
-                    var userData = OTMStudentLocation(dictionary: parsedResult)
+                    var userData = OTMUser(dictionary: parsedResult)
                     
                     completionHandler(result: userData, error: nil)
                 } else {
@@ -111,6 +123,12 @@ class OTMClient: NSObject {
         task.resume()
         
         return task
+    }
+    
+    func openURLInSafari(url: NSURL) {
+        if !UIApplication.sharedApplication().openURL(url) {
+            println("bad url")
+        }
     }
     
     // MARK: - Helpers

@@ -43,7 +43,6 @@ class LoginViewController: UIViewController {
             loginButton.enabled = false
         }
     }
-    
 
     @IBAction func loginButtonTouchUpInside(sender: UIButton) {
         self.emailTextField.resignFirstResponder()
@@ -60,8 +59,10 @@ class LoginViewController: UIViewController {
             }
         }
     }
-
-    @IBOutlet weak var signUpButtonTouchUpInside: UIButton!
+    
+    @IBAction func signUpButtonTouch(sender: UIButton) {
+        OTMClient.sharedInstance().openUdacitySignupPage()
+    }
 }
 
 // MARK: UITextFieldDelegateMethods

@@ -14,6 +14,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     var locations: [OTMStudentLocation] = [OTMStudentLocation]()
     
     @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var addLocationButton: UIBarButtonItem!
+    @IBOutlet weak var refreshButton: UIBarButtonItem!
+    @IBOutlet weak var toolbar: UIToolbar!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,6 +24,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         // Do any additional setup after loading the view.
         mapView.mapType = .Standard
         mapView.delegate = self
+        self.tabBarController?.navigationItem.setRightBarButtonItems([refreshButton, addLocationButton], animated: true)
+        self.toolbar.hidden = true
     }
     
     override func viewWillAppear(animated: Bool) {

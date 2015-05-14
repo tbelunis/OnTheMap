@@ -15,8 +15,9 @@ extension OTMClient {
         static let ParseApiKey = "QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY"
         
         // MARK: URLs
-        static let BaseUdacityURL: String = "https://www.udacity.com/api/"
-        static let BaseParseURL: String = "https://api.parse.com/1/classes/"
+        static let BaseUdacityURL = "https://www.udacity.com/api/"
+        static let BaseParseURL = "https://api.parse.com/1/classes/"
+        static let UdacitySignupURL = "https://www.tbelunis.com/index.html"
     }
     
     struct Methods {
@@ -47,7 +48,11 @@ extension OTMClient {
         static let ID = "id"
         static let Expiration = "expiration"
         
-        // MARK:  Student Location Data
+        // MARK: Udacity User Data
+        static let UdacityFirstName = "first_name"
+        static let UdacityLastName = "last_name"
+ 
+        // MARK: Student Location Data
         static let FirstName = "firstName"
         static let LastName = "lastName"
         static let Latitude = "latitude"

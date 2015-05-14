@@ -138,6 +138,9 @@
                                         <include reference="I3c-h4-HXA"/>
                                     </mask>
                                 </variation>
+                                <connections>
+                                    <action selector="signUpButtonTouch:" destination="1PL-bU-sFz" eventType="touchUpInside" id="qx1-Rl-BTH"/>
+                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="0.50196081399917603" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -226,7 +229,6 @@
                         <outlet property="emailTextField" destination="zs7-ld-vkj" id="Q4S-we-szL"/>
                         <outlet property="loginButton" destination="YJw-LC-VAm" id="hwZ-nd-7gB"/>
                         <outlet property="passwordTextField" destination="idh-1q-aGC" id="7l0-An-zBQ"/>
-                        <outlet property="signUpButtonTouchUpInside" destination="IUm-a0-TgA" id="e0p-37-qai"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="QXN-jp-AFs" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -255,7 +257,7 @@
                 <tabBarController storyboardIdentifier="ManagerTabController" title="On The Map" automaticallyAdjustsScrollViewInsets="NO" id="sSN-LD-QPq" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationItem key="navigationItem" id="fMf-rZ-Y1t"/>
-                    <nil key="simulatedBottomBarMetrics"/>
+                    <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                     <tabBar key="tabBar" contentMode="scaleToFill" id="cwa-4i-RWM">
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
@@ -272,24 +274,41 @@
         <!--List-->
         <scene sceneID="wQi-Ak-vzV">
             <objects>
-                <tableViewController id="IBh-qe-rv2" sceneMemberID="viewController">
+                <tableViewController id="IBh-qe-rv2" customClass="StudentLocationTableViewController" customModule="OnTheMap" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="oCS-3o-WDI">
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="ListCell" id="mOv-6b-cOO">
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="ListCell" textLabel="v46-AR-IE6" imageView="egk-dj-3r7" style="IBUITableViewCellStyleDefault" id="mOv-6b-cOO">
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="mOv-6b-cOO" id="z2H-yC-twb">
                                     <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="v46-AR-IE6">
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                            <nil key="highlightedColor"/>
+                                            <variation key="widthClass=compact">
+                                                <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                            </variation>
+                                        </label>
+                                        <imageView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" image="pin" id="egk-dj-3r7">
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </imageView>
+                                    </subviews>
                                 </tableViewCellContentView>
                             </tableViewCell>
                         </prototypes>
                         <connections>
-                            <outlet property="dataSource" destination="IBh-qe-rv2" id="A9E-MT-JTB"/>
+                            <outlet property="dataSource" destination="IBh-qe-rv2" id="GCU-P7-AqO"/>
                             <outlet property="delegate" destination="IBh-qe-rv2" id="di8-Fl-6bj"/>
                         </connections>
                     </tableView>
                     <tabBarItem key="tabBarItem" title="List" image="list" id="rW0-6r-2ht"/>
+                    <connections>
+                        <outlet property="studentLocationsTableView" destination="oCS-3o-WDI" id="qkJ-nw-RCV"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="sNe-2r-vYK" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -312,22 +331,40 @@
                                     <rect key="frame" x="0.0" y="64" width="400" height="556"/>
                                 </variation>
                             </mapView>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zdN-Sl-nGy">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                                <items>
+                                    <barButtonItem image="pin" id="PtK-zb-Y7E"/>
+                                    <barButtonItem systemItem="refresh" id="Ei4-hN-8Hi"/>
+                                </items>
+                                <variation key="widthClass=compact" fixedFrame="YES">
+                                    <rect key="frame" x="0.0" y="512" width="400" height="44"/>
+                                </variation>
+                            </toolbar>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <variation key="default">
                             <mask key="subviews">
                                 <exclude reference="vJt-zP-fp5"/>
+                                <exclude reference="zdN-Sl-nGy"/>
                             </mask>
                         </variation>
                         <variation key="widthClass=compact">
                             <mask key="subviews">
                                 <include reference="vJt-zP-fp5"/>
+                                <include reference="zdN-Sl-nGy"/>
                             </mask>
                         </variation>
                     </view>
                     <tabBarItem key="tabBarItem" title="Map" image="map" id="b6X-x0-QS8"/>
+                    <toolbarItems/>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
+                    <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
+                        <outlet property="addLocationButton" destination="PtK-zb-Y7E" id="XtN-U7-bum"/>
                         <outlet property="mapView" destination="vJt-zP-fp5" id="Gbz-z5-eVc"/>
+                        <outlet property="refreshButton" destination="Ei4-hN-8Hi" id="L1b-nr-Rwb"/>
+                        <outlet property="toolbar" destination="zdN-Sl-nGy" id="UZb-Jx-vUN"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="KQg-S0-VbA" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -338,6 +375,7 @@
     <resources>
         <image name="list" width="32" height="32"/>
         <image name="map" width="32" height="32"/>
+        <image name="pin" width="32" height="32"/>
         <image name="udacity" width="256" height="256"/>
     </resources>
 </document>

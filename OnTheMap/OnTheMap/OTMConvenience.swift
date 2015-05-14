@@ -25,4 +25,8 @@ extension OTMClient {
             }
         }
     }
+    
+    func openUdacitySignupPage() {
+        openURLInSafari(NSURL(string: Constants.UdacitySignupURL)!)
+    }
 }
