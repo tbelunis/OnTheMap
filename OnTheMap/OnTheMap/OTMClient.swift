@@ -125,10 +125,64 @@ class OTMClient: NSObject {
         return task
     }
     
+    func postStudentLocation(mapString: String, mediaUrl: String, latitude: Double, longitude: Double, completionHandler: (result: Bool, error: NSError?) -> Void) {
+        let request = NSMutableURLRequest(URL: NSURL(string: Constants.BaseParseURL)!)
+        let user = udacityUser!
+        let firstName = user.firstName!
+        let lastName = user.lastName!
+        let id = userID!
+        
+        let jsonBody: [String : AnyObject] = [
+            JSONBodyKeys.UniqueKey : id,
+            JSONBodyKeys.FirstName :firstName,
+            JSONBodyKeys.LastName : lastName,
+            JSONBodyKeys.MapString : mapString,
+            JSONBodyKeys.MediaURL : mediaUrl,
+            JSONBodyKeys.Latitude : latitude,
+            JSONBodyKeys.Longitude : longitude
+        ]
+        
+        request.HTTPMethod = "POST"
+        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
+        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        var jsonifyError: NSError? = nil
+        request.HTTPBody = NSJSONSerialization.dataWithJSONObject(jsonBody, options: nil, error: &jsonifyError)
+        
+        let session = NSURLSession.sharedSession()
+        
+        let task = session.dataTaskWithRequest(request) { data, response, error in
+            if let error = error {
+                let newError = OTMClient.errorForData(data, response: response, error: error)
+                completionHandler(result: false, error: newError)
+            } else {
+                completionHandler(result: true, error: nil)
+            }
+        }
+        
+        task.resume()
+    }
+    
     func openURLInSafari(url: NSURL) {
         if !UIApplication.sharedApplication().openURL(url) {
             println("bad url")
         }
+    }
+    
+    func validateURL(url: String, completionHandler: (result: Bool, error: NSError?) -> Void) {
+        let request = NSMutableURLRequest(URL: NSURL(string: url)!)
+        request.HTTPMethod = "HEAD"
+        let session = NSURLSession.sharedSession()
+        let task = session.dataTaskWithRequest(request) { data, response, error in
+            if let error = error {
+                let newError = OTMClient.errorForData(data, response: response, error: error)
+                completionHandler(result: false, error: newError)
+            } else {
+                completionHandler(result: true, error: nil)
+            }
+        }
+        task.resume()
     }
     
     // MARK: - Helpers

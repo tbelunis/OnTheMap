@@ -11,13 +11,18 @@ import UIKit
 extension OTMClient {
     struct Constants {
         // MARK: Parse Keys
-        static let ParseAppID = "QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr"
-        static let ParseApiKey = "QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY"
+        static let ParseAppID = "ENTER_PARSE_APP_ID_HERE"
+        static let ParseApiKey = "ENTER_PARSE_API_KEY_HERE"
         
         // MARK: URLs
         static let BaseUdacityURL = "https://www.udacity.com/api/"
-        static let BaseParseURL = "https://api.parse.com/1/classes/"
+        static let BaseParseURL = "https://api.parse.com/1/classes/StudentLocation"
         static let UdacitySignupURL = "https://www.tbelunis.com/index.html"
+        
+        // MARK: Mapping Constants
+        static let LatitudeDelta = 25.0
+        static let LongitudeDelta = 25.0
+        
     }
     
     struct Methods {
@@ -32,6 +37,13 @@ extension OTMClient {
         static let Udacity = "udacity"
         static let Username = "username"
         static let Password = "password"
+        static let FirstName = "firstName"
+        static let LastName = "lastName"
+        static let Latitude = "latitude"
+        static let Longitude = "longitude"
+        static let MapString = "mapString"
+        static let MediaURL = "mediaURL"
+        static let UniqueKey = "uniqueKey"
     }
     
     // MARK: JSON Response Keys
@@ -59,7 +71,9 @@ extension OTMClient {
         static let Longitude = "longitude"
         static let MapString = "mapString"
         static let MediaURL = "mediaURL"
+        static let UniqueKey = "uniqueKey"
         
         
     }
+    
 }

@@ -8,11 +8,14 @@
 
 import UIKit
 
-class StudentLocationTableViewController: UITableViewController {
+class StudentLocationTableViewController: UIViewController {
 
     var studentLocations: [OTMStudentLocation] = [OTMStudentLocation]()
     
     @IBOutlet var studentLocationsTableView: UITableView!
+    @IBOutlet weak var addLocationButton: UIBarButtonItem!
+    @IBOutlet weak var refreshListButton: UIBarButtonItem!
+    @IBOutlet weak var toolBar: UIToolbar!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,91 +25,75 @@ class StudentLocationTableViewController: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
+        
+        self.tabBarController?.navigationItem.setRightBarButtonItems([refreshListButton, addLocationButton], animated: true)
+        self.toolBar.hidden = true
     }
     
     override func viewWillAppear(animated: Bool) {
+        loadLocationsTable()
+    }
+    
+    func loadLocationsTable() {
         OTMClient.sharedInstance().getStudentLocations { locations, error in
             if let locations = locations {
                 self.studentLocations = locations
-                self.tableView.reloadData()
+                dispatch_async(dispatch_get_main_queue(), {
+                    self.studentLocationsTableView.reloadData()
+                })
             } else {
                 println(error)
             }
         }
-        
     }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
 
-    // MARK: - Table view data source
+    @IBAction func addLocationButtonTouch(sender: UIBarButtonItem) {
+        
+    }
+    
+    @IBAction func refreshListButtonTouch(sender: UIBarButtonItem) {
+        loadLocationsTable()
+    }
 
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+}
+
+extension StudentLocationTableViewController: UITableViewDataSource {
+    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         // #warning Potentially incomplete method implementation.
         // Return the number of sections.
         return 1
     }
-
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
         return studentLocations.count
     }
-
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("ListCell", forIndexPath: indexPath) as! UITableViewCell
-
+        
         cell.textLabel?.text = studentLocations[indexPath.row].fullName
-
+        
         return cell
     }
+}
 
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        // Return NO if you do not want the specified item to be editable.
-        return true
+extension StudentLocationTableViewController: UITableViewDelegate {
+    func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
+        let mediaUrl = studentLocations[indexPath.row].mediaURL
+        OTMClient.sharedInstance().validateURL(mediaUrl) { result, error in
+            if let error = error {
+                println("Invalid URL")
+            } else {
+                OTMClient.sharedInstance().openURLInSafari(NSURL(string: mediaUrl)!)
+            }
+        }
     }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
-            // Delete the row from the data source
-            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-        } else if editingStyle == .Insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        // Return NO if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using [segue destinationViewController].
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }

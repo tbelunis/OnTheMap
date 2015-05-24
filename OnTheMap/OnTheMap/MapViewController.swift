@@ -12,6 +12,7 @@ import MapKit
 class MapViewController: UIViewController, MKMapViewDelegate {
     
     var locations: [OTMStudentLocation] = [OTMStudentLocation]()
+    var mapper: OTMMapper?
     
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var addLocationButton: UIBarButtonItem!
@@ -30,18 +31,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        
-        OTMClient.sharedInstance().getStudentLocations { locations, error in
-            if let locations = locations {
-                self.locations = locations
-                for location in self.locations {
-                    self.addPinToMapView(location)
-                }
-                self.setCenterOfMapToLocation(self.locations.first)
-            } else {
-                println(error)
-            }
-        }
+        mapStudentLocations()
     }
 
     override func didReceiveMemoryWarning() {
@@ -49,19 +39,28 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         // Dispose of any resources that can be recreated.
     }
     
-    func setCenterOfMapToLocation(studentLocation: OTMStudentLocation?) {
-        if let studentLocation = studentLocation {
-            let span = MKCoordinateSpanMake(5.0, 5.0)
-            let location = CLLocationCoordinate2DMake(studentLocation.latitude, studentLocation.longitude)
-            let region = MKCoordinateRegionMake(location, span)
-            mapView.setRegion(region, animated: true)
+    func mapStudentLocations() {
+        OTMClient.sharedInstance().getStudentLocations { locations, error in
+            if let locations = locations as [OTMStudentLocation]? {
+                self.locations = locations
+                self.mapper = OTMMapper(mapView: self.mapView)
+                for location in self.locations {
+                    self.mapper?.addPinToMap(location)                }
+                self.mapper?.setCenterOfMapToStudentLocation(self.locations.first)
+            } else {
+                println(error)
+            }
         }
     }
-
-    func addPinToMapView(studentLocation: OTMStudentLocation) {
-        let location = CLLocationCoordinate2DMake(studentLocation.latitude, studentLocation.longitude)
-        let annotation = OTMAnnotation(coordinate: location, title: studentLocation.fullName, subtitle: studentLocation.mediaURL)
-        mapView.addAnnotation(annotation)
+    
+    @IBAction func addLocationTouch(sender: UIBarButtonItem) {
+        let controller = self.storyboard!.instantiateViewControllerWithIdentifier("InformationPostingView") as! UIViewController
+        self.presentViewController(controller, animated: true, completion: nil)
     }
 
+    @IBAction func refreshButtonTouch(sender: UIBarButtonItem) {
+        mapStudentLocations()
+    }
 }
+
+
