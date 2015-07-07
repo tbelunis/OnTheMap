@@ -17,7 +17,7 @@ extension OTMClient {
         // MARK: URLs
         static let BaseUdacityURL = "https://www.udacity.com/api/"
         static let BaseParseURL = "https://api.parse.com/1/classes/StudentLocation"
-        static let UdacitySignupURL = "https://www.tbelunis.com/index.html"
+        static let UdacitySignupURL = "https://www.udacity.com/account/auth#!/signup"
         
         // MARK: Mapping Constants
         static let LatitudeDelta = 25.0

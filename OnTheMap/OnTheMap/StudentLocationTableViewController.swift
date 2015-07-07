@@ -70,12 +70,8 @@ class StudentLocationTableViewController: UIViewController {
             if let error = error {
                 UIAlertController.alertWithError("Error Logging Off", error: error)
             } else {
-                // User has logged off, so present the login screen
-                dispatch_async(dispatch_get_main_queue(), {
-                    let controller = self.storyboard!.instantiateViewControllerWithIdentifier("LoginView") as! UIViewController
-                    self.presentViewController(controller, animated: true, completion: nil)
-                })
-                
+                // User has logged off, dismiss view
+                self.dismissViewControllerAnimated(true, completion: nil)
             }
         }
     }

@@ -74,14 +74,7 @@ class InformationPostingViewController: UIViewController {
             str.appendAttributedString(line3)
             
             locationPromptLabel.attributedText = str
-
-            locationTextField.becomeFirstResponder()
         }
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     // Post the entered information to Parse
