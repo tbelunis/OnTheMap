@@ -28,13 +28,24 @@ struct OTMStudentLocation {
     }
     
     /* Helper: Given an array of dictionaries, convert them to an array of OTMUser objects */
-    static func studentLocationsFromResults(results: [[String : AnyObject]]) -> [OTMStudentLocation] {
-        var users = [OTMStudentLocation]()
-        
+    static func studentLocationsFromResults(results: [[String : AnyObject]]) -> OTMStudentLocations {
+        var users = OTMStudentLocations.sharedInstance()
+        users.clear()
         for result in results {
-            users.append(OTMStudentLocation(dictionary: result))
+            if isValidDictionaryForStudentLocation(result) {
+                users.addStudentLocation(OTMStudentLocation(dictionary: result))
+            }
         }
         
         return users
+    }
+    
+    /* Make sure that the dictionary has all the necessary entries for creating an OTMStudentLocation */
+    static func isValidDictionaryForStudentLocation(dictionary: [ String : AnyObject]) -> Bool {
+        return dictionary.indexForKey(OTMClient.JSONResponseKeys.FirstName) != nil &&
+               dictionary.indexForKey(OTMClient.JSONResponseKeys.LastName) != nil &&
+               dictionary.indexForKey(OTMClient.JSONResponseKeys.Latitude) != nil &&
+               dictionary.indexForKey(OTMClient.JSONResponseKeys.Longitude) != nil &&
+               dictionary.indexForKey(OTMClient.JSONResponseKeys.MediaURL) != nil
     }
 }

@@ -9,6 +9,7 @@
 import UIKit
 import MapKit
 
+// Implement the MKAnnotation protocol
 class OTMAnnotation: NSObject, MKAnnotation {
     var coordinate: CLLocationCoordinate2D = CLLocationCoordinate2DMake(0, 0)
     var title: String!

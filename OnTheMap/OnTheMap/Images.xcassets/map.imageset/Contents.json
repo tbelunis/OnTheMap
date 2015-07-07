@@ -2,12 +2,12 @@
   "images" : [
     {
       "idiom" : "universal",
-      "scale" : "1x"
+      "scale" : "1x",
+      "filename" : "map.pdf"
     },
     {
       "idiom" : "universal",
-      "scale" : "2x",
-      "filename" : "map.pdf"
+      "scale" : "2x"
     },
     {
       "idiom" : "universal",
@@ -16,6 +16,7 @@
   ],
   "info" : {
     "version" : 1,
-    "author" : "xcode"
+    "author" : "xcode",
+    "template-rendering-intent" : "original"
   }
 }

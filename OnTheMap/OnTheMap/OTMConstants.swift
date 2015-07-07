@@ -11,8 +11,8 @@ import UIKit
 extension OTMClient {
     struct Constants {
         // MARK: Parse Keys
-        static let ParseAppID = "ENTER_PARSE_APP_ID_HERE"
-        static let ParseApiKey = "ENTER_PARSE_API_KEY_HERE"
+        static let ParseAppID = "QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr"
+        static let ParseApiKey = "QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY"
         
         // MARK: URLs
         static let BaseUdacityURL = "https://www.udacity.com/api/"
@@ -22,6 +22,13 @@ extension OTMClient {
         // MARK: Mapping Constants
         static let LatitudeDelta = 25.0
         static let LongitudeDelta = 25.0
+        
+        // MARK: HTTP Response Status Code Constants
+        static let HttpResponseOk = 200
+        // Consider anything in the following range as successful
+        static let HttpSuccessRange = (200...299)
+        static let HttpResponseForbidden = 403
+        static let HttpResponseNotFound = 404
         
     }
     
@@ -61,6 +68,7 @@ extension OTMClient {
         static let Expiration = "expiration"
         
         // MARK: Udacity User Data
+        static let UdacityUser = "user"
         static let UdacityFirstName = "first_name"
         static let UdacityLastName = "last_name"
  

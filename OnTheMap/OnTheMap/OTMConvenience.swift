@@ -11,7 +11,8 @@ import UIKit
 
 extension OTMClient {
     
-    func getStudentLocations(completionHandler: (result: [OTMStudentLocation]?, error: NSError?) -> Void) {
+    // Get the student locations from Parse
+    func getStudentLocations(completionHandler: (result: OTMStudentLocations?, error: NSError?) -> Void) {
         taskForParseGETMethod() { JSONResult, error in
             if let error = error {
                 completionHandler(result: nil, error: error)
@@ -26,7 +27,9 @@ extension OTMClient {
         }
     }
     
+    // Open the signup page on the Udacity site
     func openUdacitySignupPage() {
         openURLInSafari(NSURL(string: Constants.UdacitySignupURL)!)
     }
+    
 }

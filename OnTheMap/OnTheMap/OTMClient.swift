@@ -18,12 +18,14 @@ class OTMClient: NSObject {
     var sessionID: String? = nil
     var userID: String? = nil
     var udacityUser: OTMUser? = nil
+    var isUserAuthenticated = false;
     
     override init() {
         session = NSURLSession.sharedSession()
         super.init()
     }
     
+    // Login to Udacity with username and passwor
     func loginToUdacity(username: String, password: String, completionHandler: (result: Bool, error: NSError?) -> Void) -> NSURLSessionDataTask {
         let sessionURL = Constants.BaseUdacityURL + Methods.AuthenticationSessionNew
         let request = NSMutableURLRequest(URL: NSURL(string: sessionURL)!)
@@ -40,48 +42,91 @@ class OTMClient: NSObject {
         request.HTTPBody = NSJSONSerialization.dataWithJSONObject(jsonBody, options: nil, error: &jsonifyError)
         
         let task = session.dataTaskWithRequest(request) { data, response, error in
-            if let error = error {
-                let newError = OTMClient.errorForData(data, response: response, error: error)
-                completionHandler(result: false, error: newError)
+            if error != nil {
+                // Log in failed return error to caller
+                completionHandler(result: false, error: error)
             } else {
-                var parsingError: NSError?
-                let newData = data.subdataWithRange(NSMakeRange(5, data.length - 5))
-                 if let parsedResult = NSJSONSerialization.JSONObjectWithData(newData, options: NSJSONReadingOptions.allZeros, error: &parsingError) as? [String : AnyObject] {
-                    if let userID = parsedResult[JSONResponseKeys.Key] as? String {
-                        self.userID = userID
-                        self.getUdacityUserData(self.userID!) { result, error in
-                            if let error = error {
-                                completionHandler(result: false, error: error)
-                            } else {
-                                if let udacityUser = result {
-                                    self.udacityUser = udacityUser
-                                    completionHandler(result: true, error: nil)
+                // Check the HTTP response to see if the request succeeded
+                let httpResponse = self.checkHttpResponse(response)
+                // If the HTTP request was not successful, return an error to the caller
+                if !httpResponse.success {
+                    self.isUserAuthenticated = false
+                    completionHandler(result: false, error: NSError(domain: "Udacity Login", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey : "The username and/or password was incorrect. Please try again."]))
+                } else {
+                    // Request was successful, now parse the data that came back
+                    var parsingError: NSError?
+                    // Ignore the first five bytes of data returned by Udacity
+                    let newData = data.subdataWithRange(NSMakeRange(5, data.length - 5))
+                    if let parsedResult = NSJSONSerialization.JSONObjectWithData(newData, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as? [String :[String : AnyObject]] {
+                        if let userID = parsedResult[JSONResponseKeys.Account]?[JSONResponseKeys.Key] as? String {
+                            self.userID = userID
+                            // We have the user id, so get the user data
+                            self.getUdacityUserData(self.userID!) { result, error in
+                                if let error = error {
+                                    completionHandler(result: false, error: error)
                                 } else {
-                                    completionHandler(result: false, error: NSError(domain: "getUdacityUserData parsing", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse getUdacityUserData"]))
+                                    if let result = result {
+                                        self.udacityUser = result
+                                        self.isUserAuthenticated = true
+                                        completionHandler(result: true, error: nil)
+                                    }
                                 }
                             }
+                        } else {
+                            // We couldn't find the user id, return an error to the caller
+                            completionHandler(result: false, error: NSError(domain: "Udacity Login", code: -1, userInfo: [NSLocalizedDescriptionKey : "Error parsing data returned from Udacity"]))
                         }
                     }
-                    if let sessionID = parsedResult[JSONResponseKeys.Session] as? String {
-                        self.sessionID = sessionID
-                    }
-                    completionHandler(result:true, error:nil)
-                } else {
-                    completionHandler(result: false, error: NSError(domain: "loginToUdacity parsing", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse loginToUdacity data"]))
                 }
-                
             }
+
         }
+        
         task.resume()
         
         return task
     }
     
+    // Logoff of Udacity and reset user id and session id to nil
+    func logoffOfUdacity(completionHandler: (result: Bool, error: NSError?) -> Void) {
+        let sessionURL = Constants.BaseUdacityURL + Methods.AuthenticationSessionNew
+        let request = NSMutableURLRequest(URL: NSURL(string: sessionURL)!)
+        request.HTTPMethod = "DELETE"
+        
+        // Find the XSRF-TOKEN cookie that is needed to log off from Udacity
+        var xsrfCookie: NSHTTPCookie? = nil
+        let sharedCookieStorage = NSHTTPCookieStorage.sharedHTTPCookieStorage()
+        for cookie in sharedCookieStorage.cookies as! [NSHTTPCookie] {
+            if cookie.name == "XSRF-TOKEN" {
+                xsrfCookie = cookie
+            }
+        }
+        if let xsrfCookie = xsrfCookie {
+            request.addValue(xsrfCookie.value!, forHTTPHeaderField: "X-XSRF-Token")
+        }
+        
+        let session = NSURLSession.sharedSession()
+        let task = session.dataTaskWithRequest(request) { data, response, error in
+            // Set the following fields to nil so that the user will need to 
+            // login again before using the app.
+            self.sessionID = nil
+            self.userID = nil
+            self.udacityUser = nil
+            if error != nil {
+                completionHandler(result: false, error: error)
+            } else {
+                completionHandler(result: true, error: nil)
+            }
+        }
+        
+        task.resume()
+    }
+    
+    // Method to process GET requests for Parse
     func taskForParseGETMethod(completionHandler:(result: AnyObject?, error: NSError?) -> Void) -> NSURLSessionDataTask  {
         let request = NSMutableURLRequest(URL: NSURL(string: "https://api.parse.com/1/classes/StudentLocation")!)
-        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
-        
-        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
+        request.addValue(Constants.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
+        request.addValue(Constants.ParseApiKey, forHTTPHeaderField: "X-Parse-REST-API-Key")
         
         let session = NSURLSession.sharedSession()
         
@@ -90,7 +135,16 @@ class OTMClient: NSObject {
                 let newError = OTMClient.errorForData(data, response: response, error: error)
                 completionHandler(result: nil, error: newError)
             } else {
-                OTMClient.parseJSONWithCompletionHandler(data, completionHandler: completionHandler)
+                // Check the HTTP response status code
+                let httpResponse = self.checkHttpResponse(response)
+                if httpResponse.success {
+                    // Success, so parse the JSON returned from Parse
+                    OTMClient.parseJSONWithCompletionHandler(data, completionHandler: completionHandler)
+                } else {
+                    // HTTP request was not successful, so return an error to the caller
+                    let httpResponseMessage = NSHTTPURLResponse.localizedStringForStatusCode(httpResponse.statusCode)
+                    completionHandler(result: nil, error: NSError(domain: "Get Student Locations", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey : "The request could not be completed. \(httpResponseMessage)"]))
+                }
             }
         }
         task.resume()
@@ -98,24 +152,36 @@ class OTMClient: NSObject {
         return task
     }
     
+    // Retrieve the data for the logged in user from Udacity
     func getUdacityUserData(userID: String, completionHandler: (result: OTMUser?, error: NSError?) -> Void) -> NSURLSessionDataTask {
         let sessionURL = Constants.BaseUdacityURL + OTMClient.subtituteKeyInMethod(Methods.PublicUserData, key: "id", value: userID)!
         let request = NSURLRequest(URL: NSURL(string: sessionURL)!)
         
         let task = session.dataTaskWithRequest(request) { data, response, error in
             if let error = error {
+                // Return an error to the caller
                 let newError = OTMClient.errorForData(data, response: response, error: error)
                 completionHandler(result: nil, error: newError)
             } else {
-                var parsingError: NSError?
-                let newData = data.subdataWithRange(NSMakeRange(5, data.length - 5))
-                if let parsedResult = NSJSONSerialization.JSONObjectWithData(newData, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as? [String : AnyObject] {
-                    
-                    var userData = OTMUser(dictionary: parsedResult)
-                    
-                    completionHandler(result: userData, error: nil)
+                // Check the HTTP response status code
+                let httpResponse = self.checkHttpResponse(response)
+                if !httpResponse.success {
+                    // HTTP request was not successful, so return an error the caller
+                    let httpResponseMessage = NSHTTPURLResponse.localizedStringForStatusCode(httpResponse.statusCode)
+                    completionHandler(result: nil, error: NSError(domain: "getUdacityUserData", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey : "Could not get Udacity user data. Server returned \(httpResponseMessage)"]))
                 } else {
-                    completionHandler(result: nil, error: NSError(domain: "getUdacityUserData parsing", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse getUdacityUserData"]))
+                    // Request was successful, now parse the data that came back
+                    var parsingError: NSError?
+                    // Ignore the first five bytes of data returned by Udacity
+                    let newData = data.subdataWithRange(NSMakeRange(5, data.length - 5))
+                    if let parsedResult = NSJSONSerialization.JSONObjectWithData(newData, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as? [String : [String : AnyObject]] {
+                        
+                        var userData = OTMUser(dictionary: parsedResult[JSONResponseKeys.UdacityUser]!)
+                    
+                        completionHandler(result: userData, error: nil)
+                    } else {
+                        completionHandler(result: nil, error: NSError(domain: "getUdacityUserData parsing", code: 0, userInfo:  [NSLocalizedDescriptionKey: "Could not parse getUdacityUserData"]))
+                    }
                 }
             }
         }
@@ -125,7 +191,9 @@ class OTMClient: NSObject {
         return task
     }
     
+    // POST the student location data to Parse
     func postStudentLocation(mapString: String, mediaUrl: String, latitude: Double, longitude: Double, completionHandler: (result: Bool, error: NSError?) -> Void) {
+        
         let request = NSMutableURLRequest(URL: NSURL(string: Constants.BaseParseURL)!)
         let user = udacityUser!
         let firstName = user.firstName!
@@ -143,8 +211,8 @@ class OTMClient: NSObject {
         ]
         
         request.HTTPMethod = "POST"
-        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
-        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
+        request.addValue(Constants.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
+        request.addValue(Constants.ParseApiKey, forHTTPHeaderField: "X-Parse-REST-API-Key")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
         var jsonifyError: NSError? = nil
@@ -154,38 +222,71 @@ class OTMClient: NSObject {
         
         let task = session.dataTaskWithRequest(request) { data, response, error in
             if let error = error {
+                // Return an error to the caller
                 let newError = OTMClient.errorForData(data, response: response, error: error)
                 completionHandler(result: false, error: newError)
             } else {
-                completionHandler(result: true, error: nil)
+                // Check the HTTP response
+                let httpResponse = self.checkHttpResponse(response)
+                if httpResponse.success {
+                    // Posted successfully
+                    completionHandler(result: true, error: nil)
+                } else {
+                    // POST failed, return error to caller
+                    let httpResponseMessage = NSHTTPURLResponse.localizedStringForStatusCode(httpResponse.statusCode)
+                    completionHandler(result: false, error: NSError(domain: "postStudentLocation", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey : "Could not post student location. Server returned \(httpResponseMessage)"]))
+                }
             }
         }
         
         task.resume()
     }
     
+    // Open the URL in Safari
+    // The URL has been validated before this function is called
     func openURLInSafari(url: NSURL) {
-        if !UIApplication.sharedApplication().openURL(url) {
-            println("bad url")
-        }
+        UIApplication.sharedApplication().openURL(url)
     }
     
+    // Use the HTTP HEAD request to validate a URL
     func validateURL(url: String, completionHandler: (result: Bool, error: NSError?) -> Void) {
         let request = NSMutableURLRequest(URL: NSURL(string: url)!)
         request.HTTPMethod = "HEAD"
         let session = NSURLSession.sharedSession()
         let task = session.dataTaskWithRequest(request) { data, response, error in
             if let error = error {
+                // Return error to caller
                 let newError = OTMClient.errorForData(data, response: response, error: error)
                 completionHandler(result: false, error: newError)
             } else {
-                completionHandler(result: true, error: nil)
+                // Check to see if the HTTP request was successful
+                let httpResponse = self.checkHttpResponse(response)
+                if httpResponse.success {
+                    // URL is valid, let the caller know
+                    completionHandler(result: true, error: nil)
+                } else {
+                    // HTTP request failed, return an error to the user
+                    let httpResponseMessage = NSHTTPURLResponse.localizedStringForStatusCode(httpResponse.statusCode)
+                    completionHandler(result: false, error: NSError(domain: "Url Validation", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey : "The url is invalid. The server returned \(httpResponseMessage). Please check the url."]))
+                }
             }
         }
         task.resume()
     }
+
+    // Check the HTTP response, return a success flag and the status code
+    func checkHttpResponse(response: NSURLResponse) -> (success: Bool, statusCode: Int) {
+        // Cast response to NSHTTPURLResponse to get access to the status code
+        let httpResponse: NSHTTPURLResponse = response as! NSHTTPURLResponse
+        let statusCode = httpResponse.statusCode
+        
+        // Any status code within the range of 200 - 299 will be considered success
+        let success = statusCode >= Constants.HttpSuccessRange.startIndex && statusCode <= Constants.HttpSuccessRange.endIndex
+        return (success, statusCode)
+    }
     
     // MARK: - Helpers
+    // These helper methods were copied from code in the Udacity class "iOS Networking with Swift"
     
     /* Helper: Substitute the key for the value that is contained within the method name */
     class func subtituteKeyInMethod(method: String, key: String, value: String) -> String? {
